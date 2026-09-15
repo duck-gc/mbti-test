@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBTI 性格测评</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+    background: #faf6f0;
+    color: #4a4a4a;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 560px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    padding: 40px 36px;
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* ========== 开始页 ========== */
+  #start-screen { text-align: center; }
+  #start-screen h1 {
+    font-size: 28px;
+    color: #6b8eab;
+    margin-bottom: 16px;
+    letter-spacing: 2px;
+  }
+  #start-screen p {
+    font-size: 15px;
+    color: #8a8a8a;
+    line-height: 1.8;
+    margin-bottom: 36px;
+  }
+  .btn-start {
+    padding: 14px 48px;
+    font-size: 17px;
+    color: #fff;
+    background: #8baec4;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+  }
+  .btn-start:hover {
+    background: #7a9db5;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139,174,196,0.35);
+  }
+
+  /* ========== 答题页 ========== */
+  #quiz-screen { display: none; }
+  .progress-wrap {
+    margin-bottom: 28px;
+  }
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 8px;
+  }
+  .progress-bar-bg {
+    height: 6px;
+    background: #f0ebe4;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  #progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #8baec4;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+  .question-text {
+    font-size: 19px;
+    color: #4a4a4a;
+    line-height: 1.7;
+    margin-bottom: 32px;
+    text-align: center;
+    min-height: 66px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .option-btn {
+    padding: 18px 22px;
+    font-size: 16px;
+    color: #4a4a4a;
+    background: #faf8f5;
+    border: 2px solid #ece6de;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-align: left;
+    line-height: 1.6;
+  }
+  .option-btn:hover {
+    border-color: #8baec4;
+    background: #f0f5f9;
+    transform: translateY(-1px);
+  }
+  .option-btn:active {
+    transform: translateY(0);
+    background: #e8f0f5;
+  }
+
+  /* ========== 结果页 ========== */
+  #result-screen { display: none; text-align: center; }
+  .result-label {
+    font-size: 14px;
+    color: #aaa;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  .result-type {
+    font-size: 48px;
+    font-weight: bold;
+    color: #6b8eab;
+    letter-spacing: 4px;
+    margin-bottom: 28px;
+  }
+  .result-desc {
+    font-size: 17px;
+    color: #5a5a5a;
+    line-height: 1.9;
+    margin-bottom: 36px;
+    padding: 0 8px;
+  }
+  .btn-restart {
+    padding: 12px 40px;
+    font-size: 15px;
+    color: #8baec4;
+    background: transparent;
+    border: 2px solid #8baec4;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+  }
+  .btn-restart:hover {
+    background: #8baec4;
+    color: #fff;
+  }
+
+  /* ========== 动画 ========== */
+  .fade-in {
+    animation: fadeIn 0.4s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 开始页 -->
+  <div id="start-screen">
+    <h1>MBTI 性格测评</h1>
+    <p>共 28 道题，每题二选一<br>测完后即可看到你的性格类型<br>所有数据仅在本机处理，不会上传任何服务器</p>
+    <button class="btn-start" onclick="startQuiz()">开始测试</button>
+  </div>
+
+  <!-- 答题页 -->
+  <div id="quiz-screen">
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span id="progress-text">第 1 / 28 题</span>
+        <span id="progress-percent">4%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div id="progress-bar"></div>
+      </div>
+    </div>
+    <div class="question-text" id="question-text"></div>
+    <div class="options" id="options"></div>
+  </div>
+
+  <!-- 结果页 -->
+  <div id="result-screen">
+    <div class="result-label">你的性格类型是</div>
+    <div class="result-type" id="result-type"></div>
+    <div class="result-desc" id="result-desc"></div>
+    <button class="btn-restart" onclick="restart()">重新测试</button>
+  </div>
+</div>
+
+<script>
+// ==================== 题库 ====================
+const questions = [
+  // E/I 维度 (1-7)
+  { text: "在聚会上，你更倾向于：", a: "主动认识新朋友，扩大社交圈", b: "和已经认识的人聊天，享受熟悉感", dim: "EI", aVal: "E", bVal: "I" },
+  { text: "闲暇时，你更想：", a: "独自安静地待着，充电放松", b: "出去活动，和朋友聚一聚", dim: "EI", aVal: "I", bVal: "E" },
+  { text: "在人群中待久了，你通常：", a: "觉得充满能量，越聊越有精神", b: "觉得疲惫，需要独处来恢复", dim: "EI", aVal: "E", bVal: "I" },
+  { text: "表达想法时，你更习惯：", a: "边说边想，说出来才理清楚", b: "先想清楚再说，不急着开口", dim: "EI", aVal: "E", bVal: "I" },
+  { text: "别人眼中的你更接近：", a: "安静内敛，不太爱主动说话", b: "外向健谈，容易和人打成一片", dim: "EI", aVal: "I", bVal: "E" },
+  { text: "面对问题时，你更倾向于：", a: "先自己想清楚再行动", b: "找别人讨论，在交流中找答案", dim: "EI", aVal: "I", bVal: "E" },
+  { text: "关于被关注这件事：", a: "不太喜欢被太多人盯着看", b: "不介意甚至享受成为注意的焦点", dim: "EI", aVal: "I", bVal: "E" },
+
+  // S/N 维度 (8-14)
+  { text: "你更关注：", a: "事实、细节和眼前的事物", b: "可能性、整体趋势和未来", dim: "SN", aVal: "S", bVal: "N" },
+  { text: "你更喜欢哪种信息：", a: "有创意的、抽象的想法和概念", b: "实用的、具体的操作指南", dim: "SN", aVal: "N", bVal: "S" },
+  { text: "你更倾向于相信：", a: "亲身经历和已验证的经验", b: "直觉和灵感带来的启发", dim: "SN", aVal: "S", bVal: "N" },
+  { text: "你更擅长：", a: "记住具体的事实、数据和细节", b: "发现事物之间隐藏的联系和规律", dim: "SN", aVal: "S", bVal: "N" },
+  { text: "你更享受哪种事情：", a: "解决眼前的、实际的问题", b: "思考未来的、可能发生的事", dim: "SN", aVal: "S", bVal: "N" },
+  { text: "学习新东西时，你更喜欢：", a: "先看大局，了解整体框架", b: "一步步来，循序渐进掌握细节", dim: "SN", aVal: "N", bVal: "S" },
+  { text: "描述一件事时，你更倾向于：", a: "说它\"实际是什么样的\"", b: "说它\"可能是什么样的\"", dim: "SN", aVal: "S", bVal: "N" },
+
+  // T/F 维度 (15-21)
+  { text: "做决定时，你更看重：", a: "逻辑和客观分析", b: "感受和对人的影响", dim: "TF", aVal: "T", bVal: "F" },
+  { text: "评价一件事时，你更倾向于：", a: "客观分析利弊，就事论事", b: "关注涉及的人的感受和需要", dim: "TF", aVal: "T", bVal: "F" },
+  { text: "你认为更重要是：", a: "公正——规则面前人人平等", b: "和谐——照顾每个人的感受", dim: "TF", aVal: "T", bVal: "F" },
+  { text: "更容易打动你的是：", a: "有理有据的逻辑论证", b: "真诚动人的情感请求", dim: "TF", aVal: "T", bVal: "F" },
+  { text: "别人通常觉得你：", a: "偏理性，有时有点冷淡", b: "偏感性，温暖且容易亲近", dim: "TF", aVal: "T", bVal: "F" },
+  { text: "需要指出别人问题时，你更倾向于：", a: "直接坦率地说出来", b: "委婉表达，顾及对方的心情", dim: "TF", aVal: "T", bVal: "F" },
+  { text: "你更欣赏一个人身上的：", a: "能力和专业水准", b: "善良和真诚的品格", dim: "TF", aVal: "T", bVal: "F" },
+
+  // J/P 维度 (22-28)
+  { text: "面对任务时，你更倾向于：", a: "提前做好计划再动手", b: "边走边看，灵活调整", dim: "JP", aVal: "J", bVal: "P" },
+  { text: "你更喜欢事情：", a: "有明确结论，尽快定下来", b: "保留多种选择，不到最后不锁死", dim: "JP", aVal: "J", bVal: "P" },
+  { text: "做事节奏上，你更接近：", a: "尽早完成，不拖到最后", b: "临近截止时才进入最佳状态", dim: "JP", aVal: "J", bVal: "P" },
+  { text: "你更喜欢的生活节奏：", a: "有规律、有计划", b: "灵活多变、充满惊喜", dim: "JP", aVal: "J", bVal: "P" },
+  { text: "关于清单和待办事项：", a: "喜欢列清单，完成后打勾很满足", b: "不太喜欢被清单约束，随性就好", dim: "JP", aVal: "J", bVal: "P" },
+  { text: "计划突然变化时，你通常：", a: "感到不安，希望能提前知道", b: "觉得还好，甚至有点兴奋", dim: "JP", aVal: "J", bVal: "P" },
+  { text: "做事时你更倾向于：", a: "按既定规则和流程走", b: "找找有没有更灵活的新方式", dim: "JP", aVal: "J", bVal: "P" },
+];
+
+// ==================== 16 型人格描述 ====================
+const typeDescriptions = {
+  INTJ: "你是一个富有远见的战略家，善于独立思考，追求效率和长远目标。",
+  INTP: "你是一个逻辑缜密的思想家，热爱探索理论，追求真理和知识的边界。",
+  ENTJ: "你是天生的领导者，果断自信，善于组织资源和推动目标实现。",
+  ENTP: "你是充满创意的辩论家，喜欢挑战旧观念，乐于探索一切新可能。",
+  INFJ: "你是安静而有洞察力的理想主义者，关心他人内心，追求深层的意义。",
+  INFP: "你是温暖真诚的理想主义者，忠于内心价值观，渴望让世界更美好。",
+  ENFJ: "你是热情有感染力的引导者，善于理解他人，乐于帮助他人成长。",
+  ENFP: "你是充满热情的探索者，富有创意，喜欢与人连接和激发灵感。",
+  ISTJ: "你是踏实可靠的责任者，尊重事实和规则，做事严谨有条理。",
+  ISFJ: "你是温暖体贴的守护者，默默付出，细心照顾身边人的需要。",
+  ESTJ: "你是务实果断的管理者，擅长组织和执行，重视秩序和效率。",
+  ESFJ: "你是热心周到的支持者，善于照顾他人，重视和谐的人际关系。",
+  ISTP: "你是冷静灵活的实操者，善于动手解决问题，喜欢探索事物原理。",
+  ISFP: "你是温和自由的艺术家，审美敏锐，忠于个人感受和当下体验。",
+  ESTP: "你是行动力十足的冒险者，反应敏捷，喜欢刺激和挑战。",
+  ESFP: "你是热情开朗的表演者，享受当下，善于活跃气氛和带来欢乐。",
+};
+
+// ==================== 状态变量 ====================
+let currentQuestion = 0;
+let scores = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
+
+// ==================== 功能函数 ====================
+function startQuiz() {
+  currentQuestion = 0;
+  scores = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
+  document.getElementById("start-screen").style.display = "none";
+  document.getElementById("result-screen").style.display = "none";
+  document.getElementById("quiz-screen").style.display = "block";
+  showQuestion();
+}
+
+function showQuestion() {
+  const q = questions[currentQuestion];
+  const quizScreen = document.getElementById("quiz-screen");
+  quizScreen.classList.remove("fade-in");
+  void quizScreen.offsetWidth; // 触发重排以重置动画
+  quizScreen.classList.add("fade-in");
+
+  // 进度条
+  const progress = ((currentQuestion + 1) / questions.length) * 100;
+  document.getElementById("progress-text").textContent = "第 " + (currentQuestion + 1) + " / " + questions.length + " 题";
+  document.getElementById("progress-percent").textContent = Math.round(progress) + "%";
+  document.getElementById("progress-bar").style.width = progress + "%";
+
+  // 题目
+  document.getElementById("question-text").textContent = q.text;
+
+  // 选项
+  const optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
+  const btnA = document.createElement("button");
+  btnA.className = "option-btn";
+  btnA.textContent = q.a;
+  btnA.onclick = function() { selectOption(q.aVal); };
+
+  const btnB = document.createElement("button");
+  btnB.className = "option-btn";
+  btnB.textContent = q.b;
+  btnB.onclick = function() { selectOption(q.bVal); };
+
+  optionsDiv.appendChild(btnA);
+  optionsDiv.appendChild(btnB);
+}
+
+function selectOption(val) {
+  scores[val]++;
+  currentQuestion++;
+  if (currentQuestion < questions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  document.getElementById("quiz-screen").style.display = "none";
+  const resultScreen = document.getElementById("result-screen");
+  resultScreen.style.display = "block";
+  resultScreen.classList.remove("fade-in");
+  void resultScreen.offsetWidth;
+  resultScreen.classList.add("fade-in");
+
+  // 简单多数法判定类型
+  var type = "";
+  type += (scores.E >= scores.I) ? "E" : "I";
+  type += (scores.S >= scores.N) ? "S" : "N";
+  type += (scores.T >= scores.F) ? "T" : "F";
+  type += (scores.J >= scores.P) ? "J" : "P";
+
+  document.getElementById("result-type").textContent = type;
+  document.getElementById("result-desc").textContent = typeDescriptions[type];
+}
+
+function restart() {
+  document.getElementById("result-screen").style.display = "none";
+  document.getElementById("start-screen").style.display = "block";
+  document.getElementById("start-screen").classList.remove("fade-in");
+  void document.getElementById("start-screen").offsetWidth;
+  document.getElementById("start-screen").classList.add("fade-in");
+}
+</script>
+</body>
+</html>

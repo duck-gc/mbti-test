@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBTI 性格测评 — 交互原型</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+    background: #f0ede8;
+    color: #333;
+    min-height: 100vh;
+  }
+
+  /* ========== 顶部工具栏 ========== */
+  .toolbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 52px;
+    background: #2c3e50;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    z-index: 100;
+    gap: 20px;
+  }
+  .toolbar-title {
+    color: #ecf0f1;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+  .toolbar-info {
+    color: #95a5a6;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .toolbar-nav {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+  }
+  .nav-btn {
+    padding: 6px 16px;
+    font-size: 13px;
+    color: #bdc3c7;
+    background: transparent;
+    border: 1px solid #34495e;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .nav-btn:hover {
+    color: #ecf0f1;
+    border-color: #5d6d7e;
+    background: #34495e;
+  }
+  .nav-btn.active {
+    color: #fff;
+    background: #3498db;
+    border-color: #3498db;
+  }
+
+  /* ========== 画布区域 ========== */
+  .canvas {
+    padding: 80px 40px 60px;
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  /* ========== 屏幕容器 ========== */
+  .screen-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .screen-label {
+    font-size: 13px;
+    color: #7f8c8d;
+    font-weight: 600;
+    letter-spacing: 1px;
+    background: #e8e6e1;
+    padding: 4px 16px;
+    border-radius: 12px;
+  }
+  .screen-label .screen-num {
+    color: #e74c3c;
+    margin-right: 6px;
+  }
+
+  /* ========== 手机外框 ========== */
+  .phone-frame {
+    width: 380px;
+    height: 640px;
+    background: #faf6f0;
+    border-radius: 24px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
+    border: 1px solid #e0ddd8;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ========== 标注气泡 ========== */
+  .annotation {
+    width: 380px;
+    background: #fff;
+    border-left: 4px solid #3498db;
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    font-size: 13px;
+    line-height: 1.7;
+    color: #555;
+  }
+  .annotation .anno-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 6px;
+  }
+  .annotation ul {
+    list-style: none;
+    padding: 0;
+  }
+  .annotation li {
+    padding: 2px 0;
+    padding-left: 16px;
+    position: relative;
+  }
+  .annotation li::before {
+    content: "▸";
+    position: absolute;
+    left: 0;
+    color: #3498db;
+    font-size: 11px;
+  }
+
+  /* ========== 屏幕内部公共样式 ========== */
+  .screen-inner {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 32px 28px;
+  }
+
+  /* ========== Screen 1: 开始页 ========== */
+  #screen1 .start-title {
+    font-size: 26px;
+    color: #6b8eab;
+    text-align: center;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+  }
+  #screen1 .start-desc {
+    font-size: 14px;
+    color: #8a8a8a;
+    text-align: center;
+    line-height: 2;
+    margin-bottom: 40px;
+  }
+  #screen1 .start-btn {
+    padding: 14px 48px;
+    font-size: 16px;
+    color: #fff;
+    background: #8baec4;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
+  #screen1 .start-btn:hover {
+    background: #7a9db5;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139,174,196,0.35);
+    transition: all 0.3s ease;
+  }
+  #screen1 .privacy-badge {
+    margin-top: 24px;
+    font-size: 12px;
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  #screen1 .privacy-badge .lock-icon {
+    width: 14px; height: 14px;
+    border: 1.5px solid #ccc;
+    border-radius: 3px;
+    position: relative;
+  }
+  #screen1 .privacy-badge .lock-icon::before {
+    content: "";
+    position: absolute;
+    top: -6px; left: 50%;
+    transform: translateX(-50%);
+    width: 8px; height: 6px;
+    border: 1.5px solid #ccc;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+  }
+  /* 原型标注锚点 */
+  .anchor {
+    position: absolute;
+    width: 22px; height: 22px;
+    background: #e74c3c;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(231,76,60,0.4);
+    z-index: 10;
+    cursor: default;
+  }
+
+  /* ========== Screen 2: 答题页 ========== */
+  #screen2 .progress-wrap {
+    width: 100%;
+    margin-bottom: 28px;
+  }
+  #screen2 .progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 8px;
+  }
+  #screen2 .progress-bar-bg {
+    height: 6px;
+    background: #f0ebe4;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  #screen2 .progress-bar {
+    height: 100%;
+    width: 25%;
+    background: #8baec4;
+    border-radius: 3px;
+  }
+  #screen2 .question-text {
+    font-size: 18px;
+    color: #4a4a4a;
+    line-height: 1.7;
+    margin-bottom: 32px;
+    text-align: center;
+    min-height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #screen2 .options {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  #screen2 .option-btn {
+    padding: 16px 20px;
+    font-size: 15px;
+    color: #4a4a4a;
+    background: #faf8f5;
+    border: 2px solid #ece6de;
+    border-radius: 12px;
+    text-align: left;
+    line-height: 1.6;
+    cursor: pointer;
+  }
+  #screen2 .option-btn:hover {
+    border-color: #8baec4;
+    background: #f0f5f9;
+    transform: translateY(-1px);
+    transition: all 0.25s ease;
+  }
+  #screen2 .option-btn.selected {
+    border-color: #8baec4;
+    background: #e8f0f5;
+  }
+
+  /* ========== Screen 3: 结果页 ========== */
+  #screen3 .result-label {
+    font-size: 14px;
+    color: #aaa;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+  #screen3 .result-type {
+    font-size: 52px;
+    font-weight: bold;
+    color: #6b8eab;
+    letter-spacing: 4px;
+    margin-bottom: 32px;
+  }
+  #screen3 .result-desc {
+    font-size: 16px;
+    color: #5a5a5a;
+    line-height: 2;
+    margin-bottom: 40px;
+    padding: 0 8px;
+    text-align: center;
+  }
+  #screen3 .btn-restart {
+    padding: 12px 40px;
+    font-size: 15px;
+    color: #8baec4;
+    background: transparent;
+    border: 2px solid #8baec4;
+    border-radius: 30px;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
+  #screen3 .btn-restart:hover {
+    background: #8baec4;
+    color: #fff;
+    transition: all 0.3s ease;
+  }
+
+  /* ========== 页面流程箭头 ========== */
+  .flow-arrows {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto 30px;
+    flex-wrap: wrap;
+  }
+  .flow-item {
+    font-size: 13px;
+    color: #7f8c8d;
+    background: #e8e6e1;
+    padding: 6px 18px;
+    border-radius: 16px;
+    font-weight: 600;
+  }
+  .flow-arrow {
+    color: #bdc3c7;
+    font-size: 18px;
+  }
+
+  /* ========== 底部信息 ========== */
+  .footer-info {
+    text-align: center;
+    padding: 20px;
+    font-size: 12px;
+    color: #aaa;
+  }
+
+  /* ========== 演示交互状态 ========== */
+  .demo-note {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: #ccc;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<!-- 顶部工具栏 -->
+<div class="toolbar">
+  <div class="toolbar-title">MBTI 性格测评 — 交互原型</div>
+  <div class="toolbar-info">基于 PRD v1.0 | 3 屏完整流程</div>
+  <div class="toolbar-nav">
+    <button class="nav-btn active" onclick="scrollToScreen(1)">开始页</button>
+    <button class="nav-btn" onclick="scrollToScreen(2)">答题页</button>
+    <button class="nav-btn" onclick="scrollToScreen(3)">结果页</button>
+    <button class="nav-btn" onclick="startDemo()">在线演示</button>
+  </div>
+</div>
+
+<!-- 页面流程 -->
+<div style="padding-top:60px;">
+  <div class="flow-arrows">
+    <div class="flow-item">开始页</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">答题页 (28题)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">结果页</div>
+    <div class="flow-arrow">↻</div>
+    <div class="flow-item">重新测试</div>
+  </div>
+</div>
+
+<!-- 画布 -->
+<div class="canvas">
+
+  <!-- ====== Screen 1: 开始页 ====== -->
+  <div class="screen-card" id="card1">
+    <div class="screen-label"><span class="screen-num">01</span>开始页</div>
+    <div class="phone-frame">
+      <div class="anchor" style="top:90px; right:20px;">1</div>
+      <div class="anchor" style="top:290px; right:20px;">2</div>
+      <div class="anchor" style="bottom:80px; right:20px;">3</div>
+      <div class="screen-inner" id="screen1">
+        <div class="start-title">MBTI 性格测评</div>
+        <div class="start-desc">
+          共 28 道题，每题二选一<br>
+          测完后即可看到你的性格类型<br>
+          所有数据仅在本机处理，不会上传任何服务器
+        </div>
+        <button class="start-btn" onclick="demoStart()">开始测试</button>
+        <div class="privacy-badge">
+          <div class="lock-icon"></div>
+          <span>数据不离开本机</span>
+        </div>
+      </div>
+      <div class="demo-note">点击"开始测试"可体验完整流程</div>
+    </div>
+    <div class="annotation">
+      <div class="anno-title">Screen 01 — 开始页 标注</div>
+      <ul>
+        <li><b>① 标题</b>："MBTI 性格测评"，居中，淡蓝色 #6b8eab，26px，字间距 2px</li>
+        <li><b>② 简介</b>：3 行说明文字，灰色 #8a8a8a，14px，行高 2.0，含隐私提示</li>
+        <li><b>③ 开始按钮</b>："开始测试"，淡蓝底白字，圆角 30px，hover 上浮+阴影</li>
+        <li><b>④ 隐私标识</b>：锁形图标 + "数据不离开本机"，灰色 12px</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ====== Screen 2: 答题页 ====== -->
+  <div class="screen-card" id="card2">
+    <div class="screen-label"><span class="screen-num">02</span>答题页</div>
+    <div class="phone-frame">
+      <div class="anchor" style="top:70px; right:20px;">1</div>
+      <div class="anchor" style="top:155px; right:20px;">2</div>
+      <div class="anchor" style="top:240px; right:20px;">3</div>
+      <div class="anchor" style="top:340px; right:20px;">4</div>
+      <div class="screen-inner" id="screen2">
+        <div class="progress-wrap">
+          <div class="progress-info">
+            <span id="demo-progress-text">第 7 / 28 题</span>
+            <span id="demo-progress-percent">25%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar" id="demo-progress-bar"></div>
+          </div>
+        </div>
+        <div class="question-text" id="demo-question">在聚会上，你更倾向于：</div>
+        <div class="options" id="demo-options">
+          <div class="option-btn">主动认识新朋友，扩大社交圈</div>
+          <div class="option-btn">和已经认识的人聊天，享受熟悉感</div>
+        </div>
+      </div>
+      <div class="demo-note">点击选项可体验答题流程</div>
+    </div>
+    <div class="annotation">
+      <div class="anno-title">Screen 02 — 答题页 标注</div>
+      <ul>
+        <li><b>① 进度文字</b>："第 N / 28 题" + 百分比，灰色 13px，左右分布</li>
+        <li><b>② 进度条</b>：高 6px，底色 #f0ebe4，填充色 #8baec4，圆角 3px，带过渡动画</li>
+        <li><b>③ 题干</b>：居中，18px，深灰 #4a4a4a，行高 1.7</li>
+        <li><b>④ 选项按钮</b>：纵向排列，浅底+浅边框，hover 边框变蓝+上移 1px，点击即选中</li>
+        <li><b>交互</b>：点击选项自动进入下一题，无需二次确认；最后一题后自动跳转结果页</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ====== Screen 3: 结果页 ====== -->
+  <div class="screen-card" id="card3">
+    <div class="screen-label"><span class="screen-num">03</span>结果页</div>
+    <div class="phone-frame">
+      <div class="anchor" style="top:200px; right:20px;">1</div>
+      <div class="anchor" style="top:320px; right:20px;">2</div>
+      <div class="anchor" style="bottom:80px; right:20px;">3</div>
+      <div class="screen-inner" id="screen3">
+        <div class="result-label">你的性格类型是</div>
+        <div class="result-type" id="demo-result-type">INTJ</div>
+        <div class="result-desc" id="demo-result-desc">你是一个富有远见的战略家，善于独立思考，追求效率和长远目标。</div>
+        <button class="btn-restart" onclick="demoRestart()">重新测试</button>
+      </div>
+      <div class="demo-note">点击"重新测试"返回开始页</div>
+    </div>
+    <div class="annotation">
+      <div class="anno-title">Screen 03 — 结果页 标注</div>
+      <ul>
+        <li><b>① 类型展示</b>：四字母类型，52px 加粗，淡蓝 #6b8eab，居中，字间距 4px</li>
+        <li><b>② 性格描述</b>：一句话描述，16px，深灰 #5a5a5a，行高 2.0，居中</li>
+        <li><b>③ 重新测试</b>：空心按钮，淡蓝边框，hover 填充蓝底白字，点击返回开始页</li>
+        <li><b>数据</b>：覆盖全部 16 种 MBTI 类型，各有对应描述文案</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<!-- 底部信息 -->
+<div class="footer-info">
+  MBTI 性格测评程序 · 交互原型 v1.0 · 基于 PRD v1.0 生成 · 2026-09-15
+</div>
+
+<script>
+// ==================== 演示模式数据 ====================
+var demoQuestions = [
+  { text: "在聚会上，你更倾向于：", a: "主动认识新朋友，扩大社交圈", b: "和已经认识的人聊天，享受熟悉感", dim: "EI", aVal: "E", bVal: "I" },
+  { text: "闲暇时，你更想：", a: "独自安静地待着，充电放松", b: "出去活动，和朋友聚一聚", dim: "EI", aVal: "I", bVal: "E" },
+  { text: "在人群中待久了，你通常：", a: "觉得充满能量，越聊越有精神", b: "觉得疲惫，需要独处来恢复", dim: "EI", aVal: "E", bVal: "I" },
+  { text: "表达想法时，你更习惯：", a: "边说边想，说出来才理清楚", b: "先想清楚再说，不急着开口", dim: "EI", aVal: "E", bVal: "I" },
+  { text: "别人眼中的你更接近：", a: "安静内敛，不太爱主动说话", b: "外向健谈，容易和人打成一片", dim: "EI", aVal: "I", bVal: "E" },
+  { text: "面对问题时，你更倾向于：", a: "先自己想清楚再行动", b: "找别人讨论，在交流中找答案", dim: "EI", aVal: "I", bVal: "E" },
+  { text: "关于被关注这件事：", a: "不太喜欢被太多人盯着看", b: "不介意甚至享受成为注意的焦点", dim: "EI", aVal: "I", bVal: "E" },
+  { text: "你更关注：", a: "事实、细节和眼前的事物", b: "可能性、整体趋势和未来", dim: "SN", aVal: "S", bVal: "N" },
+  { text: "你更喜欢哪种信息：", a: "有创意的、抽象的想法和概念", b: "实用的、具体的操作指南", dim: "SN", aVal: "N", bVal: "S" },
+  { text: "你更倾向于相信：", a: "亲身经历和已验证的经验", b: "直觉和灵感带来的启发", dim: "SN", aVal: "S", bVal: "N" },
+  { text: "你更擅长：", a: "记住具体的事实、数据和细节", b: "发现事物之间隐藏的联系和规律", dim: "SN", aVal: "S", bVal: "N" },
+  { text: "你更享受哪种事情：", a: "解决眼前的、实际的问题", b: "思考未来的、可能发生的事", dim: "SN", aVal: "S", bVal: "N" },
+  { text: "学习新东西时，你更喜欢：", a: "先看大局，了解整体框架", b: "一步步来，循序渐进掌握细节", dim: "SN", aVal: "N", bVal: "S" },
+  { text: "描述一件事时，你更倾向于：", a: "说它"实际是什么样的"", b: "说它"可能是什么样的"", dim: "SN", aVal: "S", bVal: "N" },
+  { text: "做决定时，你更看重：", a: "逻辑和客观分析", b: "感受和对人的影响", dim: "TF", aVal: "T", bVal: "F" },
+  { text: "评价一件事时，你更倾向于：", a: "客观分析利弊，就事论事", b: "关注涉及的人的感受和需要", dim: "TF", aVal: "T", bVal: "F" },
+  { text: "你认为更重要是：", a: "公正——规则面前人人平等", b: "和谐——照顾每个人的感受", dim: "TF", aVal: "T", bVal: "F" },
+  { text: "更容易打动你的是：", a: "有理有据的逻辑论证", b: "真诚动人的情感请求", dim: "TF", aVal: "T", bVal: "F" },
+  { text: "别人通常觉得你：", a: "偏理性，有时有点冷淡", b: "偏感性，温暖且容易亲近", dim: "TF", aVal: "T", bVal: "F" },
+  { text: "需要指出别人问题时，你更倾向于：", a: "直接坦率地说出来", b: "委婉表达，顾及对方的心情", dim: "TF", aVal: "T", bVal: "F" },
+  { text: "你更欣赏一个人身上的：", a: "能力和专业水准", b: "善良和真诚的品格", dim: "TF", aVal: "T", bVal: "F" },
+  { text: "面对任务时，你更倾向于：", a: "提前做好计划再动手", b: "边走边看，灵活调整", dim: "JP", aVal: "J", bVal: "P" },
+  { text: "你更喜欢事情：", a: "有明确结论，尽快定下来", b: "保留多种选择，不到最后不锁死", dim: "JP", aVal: "J", bVal: "P" },
+  { text: "做事节奏上，你更接近：", a: "尽早完成，不拖到最后", b: "临近截止时才进入最佳状态", dim: "JP", aVal: "J", bVal: "P" },
+  { text: "你更喜欢的生活节奏：", a: "有规律、有计划", b: "灵活多变、充满惊喜", dim: "JP", aVal: "J", bVal: "P" },
+  { text: "关于清单和待办事项：", a: "喜欢列清单，完成后打勾很满足", b: "不太喜欢被清单约束，随性就好", dim: "JP", aVal: "J", bVal: "P" },
+  { text: "计划突然变化时，你通常：", a: "感到不安，希望能提前知道", b: "觉得还好，甚至有点兴奋", dim: "JP", aVal: "J", bVal: "P" },
+  { text: "做事时你更倾向于：", a: "按既定规则和流程走", b: "找找有没有更灵活的新方式", dim: "JP", aVal: "J", bVal: "P" },
+];
+
+var demoTypeDesc = {
+  INTJ: "你是一个富有远见的战略家，善于独立思考，追求效率和长远目标。",
+  INTP: "你是一个逻辑缜密的思想家，热爱探索理论，追求真理和知识的边界。",
+  ENTJ: "你是天生的领导者，果断自信，善于组织资源和推动目标实现。",
+  ENTP: "你是充满创意的辩论家，喜欢挑战旧观念，乐于探索一切新可能。",
+  INFJ: "你是安静而有洞察力的理想主义者，关心他人内心，追求深层的意义。",
+  INFP: "你是温暖真诚的理想主义者，忠于内心价值观，渴望让世界更美好。",
+  ENFJ: "你是热情有感染力的引导者，善于理解他人，乐于帮助他人成长。",
+  ENFP: "你是充满热情的探索者，富有创意，喜欢与人连接和激发灵感。",
+  ISTJ: "你是踏实可靠的责任者，尊重事实和规则，做事严谨有条理。",
+  ISFJ: "你是温暖体贴的守护者，默默付出，细心照顾身边人的需要。",
+  ESTJ: "你是务实果断的管理者，擅长组织和执行，重视秩序和效率。",
+  ESFJ: "你是热心周到的支持者，善于照顾他人，重视和谐的人际关系。",
+  ISTP: "你是冷静灵活的实操者，善于动手解决问题，喜欢探索事物原理。",
+  ISFP: "你是温和自由的艺术家，审美敏锐，忠于个人感受和当下体验。",
+  ESTP: "你是行动力十足的冒险者，反应敏捷，喜欢刺激和挑战。",
+  ESFP: "你是热情开朗的表演者，享受当下，善于活跃气氛和带来欢乐。",
+};
+
+// ==================== 演示模式逻辑 ====================
+var demoCurrent = 0;
+var demoScores = { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+var isDemoMode = false;
+
+function startDemo() {
+  isDemoMode = true;
+  demoCurrent = 0;
+  demoScores = { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+  // 隐藏静态内容，切换为动态
+  document.getElementById("screen1").style.display = "none";
+  document.getElementById("screen2").style.display = "flex";
+  document.getElementById("screen3").style.display = "none";
+  // 隐藏标注和锚点
+  document.querySelectorAll(".annotation").forEach(function(el){ el.style.display = "none"; });
+  document.querySelectorAll(".anchor").forEach(function(el){ el.style.display = "none"; });
+  document.querySelectorAll(".demo-note").forEach(function(el){ el.style.display = "none"; });
+  // 滚动到答题页
+  scrollToScreen(2);
+  demoShowQuestion();
+}
+
+function demoStart() {
+  startDemo();
+}
+
+function demoShowQuestion() {
+  var q = demoQuestions[demoCurrent];
+  var progress = ((demoCurrent + 1) / demoQuestions.length) * 100;
+
+  document.getElementById("demo-progress-text").textContent = "第 " + (demoCurrent + 1) + " / " + demoQuestions.length + " 题";
+  document.getElementById("demo-progress-percent").textContent = Math.round(progress) + "%";
+  document.getElementById("demo-progress-bar").style.width = progress + "%";
+  document.getElementById("demo-question").textContent = q.text;
+
+  var optsDiv = document.getElementById("demo-options");
+  optsDiv.innerHTML = "";
+
+  var btnA = document.createElement("div");
+  btnA.className = "option-btn";
+  btnA.textContent = q.a;
+  btnA.onclick = function() { demoSelect(q.aVal); };
+  optsDiv.appendChild(btnA);
+
+  var btnB = document.createElement("div");
+  btnB.className = "option-btn";
+  btnB.textContent = q.b;
+  btnB.onclick = function() { demoSelect(q.bVal); };
+  optsDiv.appendChild(btnB);
+}
+
+function demoSelect(val) {
+  demoScores[val]++;
+  demoCurrent++;
+  if (demoCurrent < demoQuestions.length) {
+    demoShowQuestion();
+  } else {
+    demoShowResult();
+  }
+}
+
+function demoShowResult() {
+  document.getElementById("screen2").style.display = "none";
+  document.getElementById("screen3").style.display = "flex";
+  scrollToScreen(3);
+
+  var type = "";
+  type += (demoScores.E >= demoScores.I) ? "E" : "I";
+  type += (demoScores.S >= demoScores.N) ? "S" : "N";
+  type += (demoScores.T >= demoScores.F) ? "T" : "F";
+  type += (demoScores.J >= demoScores.P) ? "J" : "P";
+
+  document.getElementById("demo-result-type").textContent = type;
+  document.getElementById("demo-result-desc").textContent = demoTypeDesc[type];
+}
+
+function demoRestart() {
+  document.getElementById("screen3").style.display = "none";
+  document.getElementById("screen1").style.display = "flex";
+  scrollToScreen(1);
+  // 恢复静态展示
+  isDemoMode = false;
+  demoCurrent = 0;
+  demoScores = { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+  document.querySelectorAll(".annotation").forEach(function(el){ el.style.display = "block"; });
+  document.querySelectorAll(".anchor").forEach(function(el){ el.style.display = "flex"; });
+  document.querySelectorAll(".demo-note").forEach(function(el){ el.style.display = "block"; });
+  // 恢复答题页静态展示
+  document.getElementById("demo-progress-text").textContent = "第 7 / 28 题";
+  document.getElementById("demo-progress-percent").textContent = "25%";
+  document.getElementById("demo-progress-bar").style.width = "25%";
+  document.getElementById("demo-question").textContent = "在聚会上，你更倾向于：";
+  document.getElementById("demo-options").innerHTML = '<div class="option-btn">主动认识新朋友，扩大社交圈</div><div class="option-btn">和已经认识的人聊天，享受熟悉感</div>';
+  // 恢复结果页静态展示
+  document.getElementById("demo-result-type").textContent = "INTJ";
+  document.getElementById("demo-result-desc").textContent = "你是一个富有远见的战略家，善于独立思考，追求效率和长远目标。";
+}
+
+// ==================== 导航 ====================
+function scrollToScreen(num) {
+  var card = document.getElementById("card" + num);
+  if (card) {
+    card.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  // 高亮按钮
+  document.querySelectorAll(".nav-btn").forEach(function(btn, idx) {
+    if (idx < 3) {
+      btn.classList.remove("active");
+    }
+  });
+  if (num <= 3) {
+    document.querySelectorAll(".nav-btn")[num - 1].classList.add("active");
+  }
+}
+</script>
+
+</body>
+</html>
