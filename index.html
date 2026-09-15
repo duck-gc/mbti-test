@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBTI 性格测评</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #faf6f0;
+    --card-bg: #ffffff;
+    --primary: #8baec4;
+    --primary-dark: #6b8eab;
+    --primary-light: #f0f5f9;
+    --text: #4a4a4a;
+    --text-light: #8a8a8a;
+    --text-faint: #aaa;
+    --border: #ece6de;
+    --border-active: #8baec4;
+    --shadow: 0 4px 24px rgba(0,0,0,0.06);
+    --radius: 16px;
+    --radius-btn: 12px;
+    --radius-pill: 30px;
+    --ease: 0.3s ease;
+  }
+
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 560px;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 40px 36px;
+    min-height: 500px;
+  }
+
+  /* ========== 开始页 ========== */
+  #start-screen { text-align: center; }
+  #start-screen h1 {
+    font-size: 28px;
+    color: var(--primary-dark);
+    margin-bottom: 16px;
+    letter-spacing: 2px;
+  }
+  #start-screen .subtitle {
+    font-size: 15px;
+    color: var(--text-light);
+    line-height: 1.8;
+    margin-bottom: 36px;
+  }
+  .btn-primary {
+    padding: 14px 48px;
+    font-size: 17px;
+    color: #fff;
+    background: var(--primary);
+    border: none;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: all var(--ease);
+    letter-spacing: 1px;
+  }
+  .btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139,174,196,0.35);
+  }
+
+  /* ========== 答题页 ========== */
+  #quiz-screen { display: none; }
+  .progress-wrap { margin-bottom: 28px; }
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+  }
+  .progress-bar-bg {
+    height: 6px;
+    background: #f0ebe4;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  #progress-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--primary);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+  .question-text {
+    font-size: 19px;
+    color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 32px;
+    text-align: center;
+    min-height: 66px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .option-btn {
+    padding: 18px 22px;
+    font-size: 16px;
+    color: var(--text);
+    background: #faf8f5;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-btn);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-align: left;
+    line-height: 1.6;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .option-btn:hover {
+    border-color: var(--border-active);
+    background: var(--primary-light);
+    transform: translateY(-1px);
+  }
+  .option-btn.selected {
+    border-color: var(--border-active);
+    background: #e8f0f5;
+    color: var(--primary-dark);
+  }
+  .option-radio {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    flex-shrink: 0;
+    position: relative;
+    transition: all 0.25s ease;
+  }
+  .option-btn.selected .option-radio {
+    border-color: var(--primary);
+  }
+  .option-btn.selected .option-radio::after {
+    content: "";
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 10px; height: 10px;
+    background: var(--primary);
+    border-radius: 50%;
+  }
+  .nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .btn-nav {
+    padding: 10px 24px;
+    font-size: 14px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: all var(--ease);
+    letter-spacing: 0.5px;
+  }
+  .btn-prev {
+    color: var(--text-light);
+    background: transparent;
+    border: 1.5px solid var(--border);
+  }
+  .btn-prev:hover:not(:disabled) {
+    border-color: var(--primary);
+    color: var(--primary-dark);
+  }
+  .btn-prev:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .btn-next {
+    color: #fff;
+    background: var(--primary);
+    border: none;
+  }
+  .btn-next:hover:not(:disabled) {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+  }
+  .btn-next:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  /* ========== 结果页 ========== */
+  #result-screen { display: none; text-align: center; }
+  .result-label {
+    font-size: 14px;
+    color: var(--text-faint);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  .result-type {
+    font-size: 48px;
+    font-weight: bold;
+    color: var(--primary-dark);
+    letter-spacing: 4px;
+    margin-bottom: 28px;
+  }
+  .result-desc {
+    font-size: 17px;
+    color: #5a5a5a;
+    line-height: 1.9;
+    margin-bottom: 32px;
+    padding: 0 8px;
+  }
+  .dim-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 32px;
+    text-align: left;
+  }
+  .dim-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .dim-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-light);
+  }
+  .dim-labels .dim-active {
+    color: var(--primary-dark);
+    font-weight: 600;
+  }
+  .dim-bar-bg {
+    height: 8px;
+    background: #f0ebe4;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+  }
+  .dim-bar-left, .dim-bar-right {
+    height: 100%;
+    transition: width 0.6s ease;
+  }
+  .dim-bar-left {
+    background: var(--primary);
+    border-radius: 4px 0 0 4px;
+  }
+  .dim-bar-right {
+    background: #d4c8b8;
+    border-radius: 0 4px 4px 0;
+  }
+  .dim-meaning {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-top: 2px;
+  }
+  .disclaimer {
+    font-size: 12px;
+    color: var(--text-faint);
+    line-height: 1.7;
+    margin-bottom: 28px;
+    padding: 14px 16px;
+    background: #faf8f5;
+    border-radius: 10px;
+    border: 1px solid #f0ebe4;
+  }
+  .btn-restart {
+    padding: 12px 40px;
+    font-size: 15px;
+    color: var(--primary);
+    background: transparent;
+    border: 2px solid var(--primary);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: all var(--ease);
+    letter-spacing: 1px;
+  }
+  .btn-restart:hover {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  /* ========== 动画 ========== */
+  .fade-in { animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ========== 响应式 ========== */
+  @media (max-width: 480px) {
+    body { padding: 12px; }
+    .container { padding: 28px 20px; border-radius: 12px; }
+    #start-screen h1 { font-size: 24px; }
+    .question-text { font-size: 17px; }
+    .option-btn { padding: 14px 16px; font-size: 15px; }
+    .result-type { font-size: 40px; }
+    .result-desc { font-size: 15px; }
+    .btn-primary { padding: 12px 40px; font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 开始页 -->
+  <div id="start-screen">
+    <h1>MBTI 性格测评</h1>
+    <div class="subtitle">
+      共 20 道题，每题二选一<br>
+      测完后即可看到你的性格类型<br>
+      所有数据仅在本机处理，不会上传任何服务器
+    </div>
+    <button class="btn-primary" onclick="startQuiz()">开始测试</button>
+  </div>
+
+  <!-- 答题页 -->
+  <div id="quiz-screen">
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span id="progress-text">第 1 / 20 题</span>
+        <span id="progress-percent">5%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div id="progress-bar"></div>
+      </div>
+    </div>
+    <div class="question-text" id="question-text"></div>
+    <div class="options" id="options"></div>
+    <div class="nav-buttons">
+      <button class="btn-nav btn-prev" id="btn-prev" onclick="prevQuestion()">上一题</button>
+      <button class="btn-nav btn-next" id="btn-next" onclick="nextQuestion()">下一题</button>
+    </div>
+  </div>
+
+  <!-- 结果页 -->
+  <div id="result-screen">
+    <div class="result-label">你的性格类型是</div>
+    <div class="result-type" id="result-type"></div>
+    <div class="result-desc" id="result-desc"></div>
+    <div class="dim-breakdown" id="dim-breakdown"></div>
+    <div class="disclaimer">
+      本测评仅供娱乐和自我了解，不构成心理诊断或专业建议。<br>
+      如需专业心理评估，请咨询持有资质的心理咨询师或医疗机构。
+    </div>
+    <button class="btn-restart" onclick="restart()">重新测试</button>
+  </div>
+</div>
+
+<script>
+// ==================== 题库（20题，每维度5题）====================
+const questions = [
+  // E/I 维度 (1-5)
+  { text: "在聚会上，你更倾向于：", a: "主动认识新朋友，扩大社交圈", b: "和已经认识的人聊天，享受熟悉感", dim: "EI", aVal: "E", bVal: "I" },
+  { text: "在人群中待久了，你通常：", a: "觉得充满能量，越聊越有精神", b: "觉得疲惫，需要独处来恢复", dim: "EI", aVal: "E", bVal: "I" },
+  { text: "表达想法时，你更习惯：", a: "边说边想，说出来才理清楚", b: "先想清楚再说，不急着开口", dim: "EI", aVal: "E", bVal: "I" },
+  { text: "面对问题时，你更倾向于：", a: "找别人讨论，在交流中找答案", b: "先自己想清楚再行动", dim: "EI", aVal: "E", bVal: "I" },
+  { text: "别人眼中的你更接近：", a: "外向健谈，容易和人打成一片", b: "安静内敛，不太爱主动说话", dim: "EI", aVal: "E", bVal: "I" },
+
+  // S/N 维度 (6-10)
+  { text: "你更关注：", a: "事实、细节和眼前的事物", b: "可能性、整体趋势和未来", dim: "SN", aVal: "S", bVal: "N" },
+  { text: "你更喜欢哪种信息：", a: "实用的、具体的操作指南", b: "有创意的、抽象的想法和概念", dim: "SN", aVal: "S", bVal: "N" },
+  { text: "你更倾向于相信：", a: "亲身经历和已验证的经验", b: "直觉和灵感带来的启发", dim: "SN", aVal: "S", bVal: "N" },
+  { text: "你更擅长：", a: "记住具体的事实、数据和细节", b: "发现事物之间隐藏的联系和规律", dim: "SN", aVal: "S", bVal: "N" },
+  { text: "学习新东西时，你更喜欢：", a: "一步步来，循序渐进掌握细节", b: "先看大局，了解整体框架", dim: "SN", aVal: "S", bVal: "N" },
+
+  // T/F 维度 (11-15)
+  { text: "做决定时，你更看重：", a: "逻辑和客观分析", b: "感受和对人的影响", dim: "TF", aVal: "T", bVal: "F" },
+  { text: "评价一件事时，你更倾向于：", a: "客观分析利弊，就事论事", b: "关注涉及的人的感受和需要", dim: "TF", aVal: "T", bVal: "F" },
+  { text: "你认为更重要是：", a: "公正——规则面前人人平等", b: "和谐——照顾每个人的感受", dim: "TF", aVal: "T", bVal: "F" },
+  { text: "更容易打动你的是：", a: "有理有据的逻辑论证", b: "真诚动人的情感请求", dim: "TF", aVal: "T", bVal: "F" },
+  { text: "别人通常觉得你：", a: "偏理性，有时有点冷淡", b: "偏感性，温暖且容易亲近", dim: "TF", aVal: "T", bVal: "F" },
+
+  // J/P 维度 (16-20)
+  { text: "面对任务时，你更倾向于：", a: "提前做好计划再动手", b: "边走边看，灵活调整", dim: "JP", aVal: "J", bVal: "P" },
+  { text: "你更喜欢事情：", a: "有明确结论，尽快定下来", b: "保留多种选择，不到最后不锁死", dim: "JP", aVal: "J", bVal: "P" },
+  { text: "做事节奏上，你更接近：", a: "尽早完成，不拖到最后", b: "临近截止时才进入最佳状态", dim: "JP", aVal: "J", bVal: "P" },
+  { text: "关于清单和待办事项：", a: "喜欢列清单，完成后打勾很满足", b: "不太喜欢被清单约束，随性就好", dim: "JP", aVal: "J", bVal: "P" },
+  { text: "计划突然变化时，你通常：", a: "感到不安，希望能提前知道", b: "觉得还好，甚至有点兴奋", dim: "JP", aVal: "J", bVal: "P" },
+];
+
+// ==================== 维度说明 ====================
+const dimInfo = {
+  E: { name: "外向", desc: "能量来源于外部社交" },
+  I: { name: "内向", desc: "能量来源于独处内省" },
+  S: { name: "感觉", desc: "关注事实与细节" },
+  N: { name: "直觉", desc: "关注可能性与整体" },
+  T: { name: "思考", desc: "决策基于逻辑分析" },
+  F: { name: "情感", desc: "决策基于感受与价值" },
+  J: { name: "判断", desc: "偏好计划与秩序" },
+  P: { name: "感知", desc: "偏好灵活与开放" },
+};
+
+// ==================== 16型描述 ====================
+const typeDescriptions = {
+  INTJ: "你是一个富有远见的战略家，善于独立思考，追求效率和长远目标。你习惯用全局视角审视问题，对自己要求很高，也期待他人同样优秀。",
+  INTP: "你是一个逻辑缜密的思想家，热爱探索理论，追求真理和知识的边界。你喜欢在概念世界里遨游，对抽象问题有天然的敏感度。",
+  ENTJ: "你是天生的领导者，果断自信，善于组织资源和推动目标实现。你看重效率，不喜欢拖泥带水，擅长在复杂局面中找到前进方向。",
+  ENTP: "你是充满创意的辩论家，喜欢挑战旧观念，乐于探索一切新可能。你思维敏捷，享受智力交锋，对「不可能」三个字充满好奇。",
+  INFJ: "你是安静而有洞察力的理想主义者，关心他人内心，追求深层的意义。你有坚定的内在价值观，想用自己的方式让世界更好。",
+  INFP: "你是温暖真诚的理想主义者，忠于内心价值观，渴望让世界更美好。你对他人情感很敏感，追求真实且有深度的人际连接。",
+  ENFJ: "你是热情有感染力的引导者，善于理解他人，乐于帮助他人成长。你天然擅长凝聚人心，常常是团队中不可或缺的黏合剂。",
+  ENFP: "你是充满热情的探索者，富有创意，喜欢与人连接和激发灵感。你对生活充满好奇心，善于发现日常中的惊喜与可能。",
+  ISTJ: "你是踏实可靠的责任者，尊重事实和规则，做事严谨有条理。你言出必行，是值得信赖的执行者，重视传统和秩序。",
+  ISFJ: "你是温暖体贴的守护者，默默付出，细心照顾身边人的需要。你忠诚可靠，善于记住细节，用实际行动表达关怀。",
+  ESTJ: "你是务实果断的管理者，擅长组织和执行，重视秩序和效率。你善于建立流程，让混乱变有序，是天生的组织者。",
+  ESFJ: "你是热心周到的支持者，善于照顾他人，重视和谐的人际关系。你热心肠，记得别人的喜好，是聚会和活动的积极组织者。",
+  ISTP: "你是冷静灵活的实操者，善于动手解决问题，喜欢探索事物原理。你话不多但行动力强，在危机时刻往往冷静且高效。",
+  ISFP: "你是温和自由的艺术家，审美敏锐，忠于个人感受和当下体验。你不喜欢被条条框框束缚，用自己独特的视角感受世界。",
+  ESTP: "你是行动力十足的冒险者，反应敏捷，喜欢刺激和挑战。你活在当下，善于随机应变，是天生的实干家和冒险家。",
+  ESFP: "你是热情开朗的表演者，享受当下，善于活跃气氛和带来欢乐。你是人群中的开心果，让周围人感到轻松和愉快。",
+};
+
+// ==================== 状态变量 ====================
+let currentQuestion = 0;
+let answers = [];  // 存储每题选择: "A" 或 "B" 或 null
+let scores = { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+
+// ==================== 功能函数 ====================
+function startQuiz() {
+  currentQuestion = 0;
+  answers = new Array(questions.length).fill(null);
+  scores = { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+  document.getElementById("start-screen").style.display = "none";
+  document.getElementById("result-screen").style.display = "none";
+  document.getElementById("quiz-screen").style.display = "block";
+  showQuestion();
+}
+
+function showQuestion() {
+  const q = questions[currentQuestion];
+  const quizScreen = document.getElementById("quiz-screen");
+  quizScreen.classList.remove("fade-in");
+  void quizScreen.offsetWidth;
+  quizScreen.classList.add("fade-in");
+
+  // 进度
+  const answered = answers.filter(a => a !== null).length;
+  const progress = (answered / questions.length) * 100;
+  document.getElementById("progress-text").textContent = "第 " + (currentQuestion + 1) + " / " + questions.length + " 题";
+  document.getElementById("progress-percent").textContent = Math.round(progress) + "%";
+  document.getElementById("progress-bar").style.width = progress + "%";
+
+  // 题目
+  document.getElementById("question-text").textContent = q.text;
+
+  // 选项
+  const optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
+
+  const btnA = document.createElement("div");
+  btnA.className = "option-btn" + (answers[currentQuestion] === "A" ? " selected" : "");
+  btnA.innerHTML = '<div class="option-radio"></div><span>' + q.a + '</span>';
+  btnA.onclick = function() { selectOption("A"); };
+
+  const btnB = document.createElement("div");
+  btnB.className = "option-btn" + (answers[currentQuestion] === "B" ? " selected" : "");
+  btnB.innerHTML = '<div class="option-radio"></div><span>' + q.b + '</span>';
+  btnB.onclick = function() { selectOption("B"); };
+
+  optionsDiv.appendChild(btnA);
+  optionsDiv.appendChild(btnB);
+
+  // 按钮状态
+  document.getElementById("btn-prev").disabled = (currentQuestion === 0);
+  const isLast = (currentQuestion === questions.length - 1);
+  const btnNext = document.getElementById("btn-next");
+  btnNext.textContent = isLast ? "查看结果" : "下一题";
+  btnNext.disabled = (answers[currentQuestion] === null);
+}
+
+function selectOption(val) {
+  answers[currentQuestion] = val;
+  // 更新选项选中状态
+  const options = document.querySelectorAll(".option-btn");
+  options.forEach((opt, idx) => {
+    if ((idx === 0 && val === "A") || (idx === 1 && val === "B")) {
+      opt.classList.add("selected");
+    } else {
+      opt.classList.remove("selected");
+    }
+  });
+  // 启用下一题按钮
+  document.getElementById("btn-next").disabled = false;
+  // 更新进度
+  const answered = answers.filter(a => a !== null).length;
+  const progress = (answered / questions.length) * 100;
+  document.getElementById("progress-percent").textContent = Math.round(progress) + "%";
+  document.getElementById("progress-bar").style.width = progress + "%";
+}
+
+function nextQuestion() {
+  if (answers[currentQuestion] === null) return;
+  if (currentQuestion < questions.length - 1) {
+    currentQuestion++;
+    showQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function prevQuestion() {
+  if (currentQuestion > 0) {
+    currentQuestion--;
+    showQuestion();
+  }
+}
+
+function showResult() {
+  // 计算得分
+  scores = { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+  for (let i = 0; i < questions.length; i++) {
+    if (answers[i] === "A") scores[questions[i].aVal]++;
+    else if (answers[i] === "B") scores[questions[i].bVal]++;
+  }
+
+  // 判定类型
+  var type = "";
+  type += (scores.E >= scores.I) ? "E" : "I";
+  type += (scores.S >= scores.N) ? "S" : "N";
+  type += (scores.T >= scores.F) ? "T" : "F";
+  type += (scores.J >= scores.P) ? "J" : "P";
+
+  // 切换页面
+  document.getElementById("quiz-screen").style.display = "none";
+  var resultScreen = document.getElementById("result-screen");
+  resultScreen.style.display = "block";
+  resultScreen.classList.remove("fade-in");
+  void resultScreen.offsetWidth;
+  resultScreen.classList.add("fade-in");
+
+  // 类型 + 描述
+  document.getElementById("result-type").textContent = type;
+  document.getElementById("result-desc").textContent = typeDescriptions[type];
+
+  // 维度明细
+  var dims = [
+    { left:"E", right:"I", leftName:"外向", rightName:"内向" },
+    { left:"S", right:"N", leftName:"感觉", rightName:"直觉" },
+    { left:"T", right:"F", leftName:"思考", rightName:"情感" },
+    { left:"J", right:"P", leftName:"判断", rightName:"感知" },
+  ];
+  var totalPerDim = 5; // 每维度5题
+  var breakdownDiv = document.getElementById("dim-breakdown");
+  breakdownDiv.innerHTML = "";
+  dims.forEach(function(d) {
+    var leftScore = scores[d.left];
+    var rightScore = scores[d.right];
+    var leftPct = Math.round(leftScore / totalPerDim * 100);
+    var rightPct = 100 - leftPct;
+    var leftActive = leftScore >= rightScore;
+    var row = document.createElement("div");
+    row.className = "dim-row";
+    row.innerHTML =
+      '<div class="dim-labels">' +
+        '<span class="' + (leftActive ? "dim-active" : "") + '">' + d.leftName + ' (' + d.left + ')</span>' +
+        '<span class="' + (!leftActive ? "dim-active" : "") + '">' + d.rightName + ' (' + d.right + ')</span>' +
+      '</div>' +
+      '<div class="dim-bar-bg">' +
+        '<div class="dim-bar-left" style="width:' + leftPct + '%"></div>' +
+        '<div class="dim-bar-right" style="width:' + rightPct + '%"></div>' +
+      '</div>' +
+      '<div class="dim-meaning">' +
+        dimInfo[d.left].desc + ' ←→ ' + dimInfo[d.right].desc +
+      '</div>';
+    breakdownDiv.appendChild(row);
+  });
+}
+
+function restart() {
+  document.getElementById("result-screen").style.display = "none";
+  var startScreen = document.getElementById("start-screen");
+  startScreen.style.display = "block";
+  startScreen.classList.remove("fade-in");
+  void startScreen.offsetWidth;
+  startScreen.classList.add("fade-in");
+}
+</script>
+</body>
+</html>
