@@ -1,0 +1,13 @@
+{
+  "name": "mbti-test",
+  "version": "1.0.0",
+  "description": "MBTI 性格测评程序（纯静态单页应用）",
+  "private": true,
+  "scripts": {
+    "test": "node tests/validate.js",
+    "serve": "npx --yes serve ."
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
